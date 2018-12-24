@@ -20,7 +20,7 @@ public class LoginProducer {
         if(kafkaUrl==null){
             throw new RuntimeException("kafka url must be given");
         }
-        System.out.println("start produce data to kafka "+kafkaUrl);
+        //System.out.println("start produce data to kafka "+kafkaUrl);
 
 
         if (producer == null) {

@@ -17,10 +17,12 @@ import java.util.concurrent.TimeUnit;
 
 public class Application {
 
-    private static final String APPLICATION_ID = System.getenv("APPLICATION_ID");
-    private static final String INPUT_TOPIC = System.getenv("INPUT_TOPIC");
-    private static final String OUTPUT_TOPIC = System.getenv("OUTPUT_TOPIC");
+    private static final String APPLICATION_ID   = System.getenv("APPLICATION_ID");
+    private static final String INPUT_TOPIC      = System.getenv("INPUT_TOPIC");
+    private static final String OUTPUT_TOPIC     = System.getenv("OUTPUT_TOPIC");
     private static final String BOOTSTRAP_SERVER = System.getenv("KAFKA_URL");
+    private static final String WINDOW_SIZE      = System.getenv("WINDOW_SIZE");
+    private static final String WINDOW_MOVE      = System.getenv("WINDOW_MOVE");
 
     public static void main(final String[] args) {
 
@@ -47,6 +49,9 @@ public class Application {
 
         final KStream<String, LoginData> source = builder.stream(INPUT_TOPIC, Consumed.with(Serdes.String(), loginDataSerde));
 
+        final Serde<String> stringSerde = Serdes.String();
+
+        Serde<LoginCount> loginCountSerde = SerdeBuilder.buildSerde(LoginCount.class);
 
         System.out.println("start streaming processing on topic "+INPUT_TOPIC);
 
@@ -54,13 +59,11 @@ public class Application {
                 .filter((key, value) -> value != null)
                 .map((key, value) -> new KeyValue<>(value.getUserName(), value))
                 .groupByKey(Serialized.with(Serdes.String(), loginDataSerde))
-                .windowedBy(TimeWindows.of(TimeUnit.SECONDS.toMillis(1)))
+                .windowedBy(TimeWindows.of(TimeUnit.SECONDS.toMillis(Long.parseLong(WINDOW_SIZE)))
+                                .advanceBy(TimeUnit.SECONDS.toMillis(Long.parseLong(WINDOW_MOVE))))
                 .count();
 
 
-        final Serde<String> stringSerde = Serdes.String();
-
-        Serde<LoginCount> loginCountSerde = SerdeBuilder.buildSerde(LoginCount.class);
 
         counts.toStream().map((windowed,count)->new KeyValue<>(windowed.key(),new LoginCount(windowed.key(),count,windowed.window().start(),windowed.window().end())))
                 .to(OUTPUT_TOPIC, Produced.with(stringSerde, loginCountSerde));
