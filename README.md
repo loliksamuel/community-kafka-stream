@@ -168,12 +168,16 @@ MESSAGE=> key:user_3, value:LoginCount{userName='user_3', count=1, windowStart=1
 MESSAGE=> key:user_4, value:LoginCount{userName='user_4', count=1, windowStart=1545346145000, windowEnd=1545346146000}
 ```  
 
-6. To open kafka bash run `docker exec -i -t kafka /bin/bash`
+6. To open kafka bash run `docker exec -i -t kafka /bin/bash`  or  `docker exec -it kafka bash`
 
-Here, you can run Kafka tools from CLI, for example creating a topic
+find kafka bin folder `find . -name "kafka-topics" -print`
+
+go to folder `cd opt/kafka/bin` or `cd usr/bin`
+
+run Kafka cli-tools, for example creating a topic
 
 `kafka-topics.sh --create --topic my-topic  --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1`
-
+or `kafka-topics --create --topic my-topic  --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1`
 Note, that zookeeper host name is set to container name and not to localhost: `zookeeper:2181`. This is because we are inside Kafka container, and using localhost here will refer to the Kafka container host, and not to the host machine. 
 
 7. Reset tool.
